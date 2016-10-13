@@ -14,9 +14,17 @@ class TextParser():
         """
         Cleans the content to make it ready for tokenization.
         """
-        utf_decoded = content.decode('utf-8')
-        short_lines_removed = self.__remove_short_lines(utf_decoded)
+        non_ascii_removed = self.__remove_nonascii(content)
+        short_lines_removed = self.__remove_short_lines(non_ascii_removed)
         return short_lines_removed
+
+    def __remove_nonascii(self, content):
+        rv = ""
+        for line in content:
+                line=line.decode("ascii","ignore").encode("ascii")
+                if line=="":continue
+                rv += line
+        return rv
 
     def __remove_short_lines(self, content):
         """
