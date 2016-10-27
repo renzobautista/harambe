@@ -1,1 +1,3 @@
-Is the house up on a hill?
+Is the grass green?
+Is the grass red?
+Is the grass not green?
