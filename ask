@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+from TextParser import TextParser
+from SentencesPreprocessor import SentencesPreprocessor
+from QuestionGenerator import QuestionGenerator
+from QuestionRanker import QuestionRanker
+
+import sys
+import random
+
+article_path = sys.argv[1]
+num_questions = int(sys.argv[2])
+sentences = TextParser(article_path).to_sentences()[-50:]
+simple_sentences = SentencesPreprocessor(sentences).generate_simple_sentences()
+random.shuffle(simple_sentences)
+generated = []
+i = 0
+for s in simple_sentences:
+  for question in QuestionGenerator(s).create():
+      if question not in generated:
+        if QuestionRanker(question).score() > 0.5:
+          print question
+          i += 1
+          if i == num_questions:
+            break
+          generated.append(question)
+  if i == num_questions:
+    break

@@ -22,7 +22,8 @@ class TextParser():
         rv = ""
         for line in content:
                 line=line.decode("ascii","ignore").encode("ascii")
-                if line=="":continue
+                if line=="":
+                    continue
                 rv += line
         return rv
 
@@ -32,6 +33,7 @@ class TextParser():
         """
         rv = ""
         for line in content.splitlines():
-            if len(line) > 80:
+            if len(line) > 100:
                 rv += line
+                rv += ' '
         return rv
