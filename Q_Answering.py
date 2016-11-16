@@ -2,6 +2,7 @@ import sys
 import nltk
 import string
 
+from SentenceParser import SentenceParser
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -54,7 +55,26 @@ def parseQ(qarray):
   ret = []
   for q in qarray:
     # get the actual question if composite sentence
-    ret.append(q.lower().translate(None, string.punctuation)) 
+    if(', ' in q):
+      qsplit = q.split(', ')
+      s1 = SentenceParser.parse(qsplit[0])[0].label()
+      s2 = SentenceParser.parse(qsplit[1])[0].label()
+      s1b = False
+      s2b = False
+      if(s1 == "SQ" or s1 == "SQARQ"):
+        ret.append(qsplit[0].lower().translate(None, string.punctuation)) 
+        s1b = True
+      if(s2 == "SQ" or s2 == "SQARQ"):
+        ret.append(qsplit[1].lower().translate(None, string.punctuation)) 
+        s2b = True
+
+      # fall through case
+      if(not(s1b or s2b)):
+        ret.append(qsplit[0].lower().translate(None, string.punctuation))
+
+    
+    else:
+      ret.append(q.lower().translate(None, string.punctuation)) 
   return ret
 
 
@@ -107,6 +127,10 @@ def answer(q, docNum, tfidf):
      # evaluate: ???? train some data set
      # think of different metrics to get the target sentence
      # is the grass not red?
+  else:
+    # wh question
+    # if in the form of wh/word + SQ (ex. when did you eat), look at tense of second word in SQ 
+    pass
 
 
 if __name__ == '__main__':
