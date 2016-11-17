@@ -142,6 +142,9 @@ class SentencesPreprocessor():
     for s in t:
       if s.label() == 'S':
         simples.extend(self.__extract_simples(s, so_far))
+    for i in xrange(len(t) - 1):
+      if t[i].label() == 'NP' and t[i+1].label() == 'VP':
+        simples.extend(self.__get_simples_from_np_vp(t[i], t[i+1]))
     if ['NP', 'VP', '.'] == immediate_labels(t):
       simples.extend(self.__get_simples_from_np_vp(t[0], t[1]))
     elif ['NP', 'ADVP', 'VP', '.'] == immediate_labels(t):
@@ -159,5 +162,7 @@ class SentencesPreprocessor():
       extender = Tree('PP', children=t[0])
       leftmost(extender)[0] = leftmost(extender)[0].lower()
       simples.extend(self.__get_simples_from_np_vp(t[2], t[3], extender))
+    # else:
+    #   simples.append(t)
 
     return simples
