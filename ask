@@ -10,7 +10,7 @@ import random
 
 article_path = sys.argv[1]
 num_questions = int(sys.argv[2])
-sentences = TextParser(article_path).to_sentences()[-50:]
+sentences = TextParser(article_path).to_sentences()[:50]
 simple_sentences = SentencesPreprocessor(sentences).generate_simple_sentences()
 random.shuffle(simple_sentences)
 generated = []
@@ -21,8 +21,7 @@ for s in simple_sentences:
         if QuestionRanker(question).score() > 0.5:
           print question
           i += 1
-          if i == num_questions:
-            break
           generated.append(question)
+          break
   if i == num_questions:
     break

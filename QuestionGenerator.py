@@ -28,6 +28,8 @@ class QuestionGenerator():
 
   def __create_np1_np2_question(self, t):
     sections = []
+    if len(t) < 3 or (t[0].label() != 'NP' or t[1].label() != 'VP'):
+      return None
     for s in t:
       label = s.label()
       section = s.leaves()
@@ -59,7 +61,7 @@ class QuestionGenerator():
       elif sections[1][1][0] == 'has' and t[1][1].label() in ['VP', 'ADVP']:
         question = "Has " + np_phrase + ' ' + vp_phrase + '?'
       elif sections[1][1][0] == 'had' and t[1][1].label() in ['VP', 'ADVP']:
-        question = "Had " + np_phrase + ' ' + vp_phrase + '?'
+        question = "Has " + np_phrase + ' ' + vp_phrase + '?'
       elif sections[1][1][0] == 'have' and t[1][1].label() in ['VP', 'ADVP']:
         question = "Have " + np_phrase + ' ' + vp_phrase + '?'
       else:
