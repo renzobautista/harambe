@@ -21,8 +21,7 @@ for s in simple_sentences:
         if QuestionRanker(question).score() > 0.5:
           print question
           i += 1
-          if i == num_questions:
-            break
           generated.append(question)
+          break
   if i == num_questions:
     break
