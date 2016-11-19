@@ -88,18 +88,18 @@ class SentencesPreprocessor():
     else:
       orig = Tree('S', children=[np, vp, pp, period])
       orig_no_pp = Tree('S', children=[np, vp, period])
+    # print sentence_join(orig)
+    # print sentence_join(vp)
+    # print immediate_labels(vp)
+    # print vp
     if ['VP', 'CC', 'VP'] == immediate_labels(vp)[:3]:
       if vp[1][0] == 'and':
-        if pp:
-          simples.append(Tree('S', children=[np, vp[0], pp, period]))
-        simples.append(Tree('S', children=[np, vp[0], period]))
-        simples.append(Tree('S', children=[np, vp[2], period]))
+        simples.extend(self.__get_simples_from_np_vp(np, vp[0], pp))
+        simples.extend(self.__get_simples_from_np_vp(np, vp[2]))
     elif ['VP', ',', 'CC', 'VP'] == immediate_labels(vp)[:4]:
       if vp[2][0] == 'and':
-        if pp:
-          simples.append(Tree('S', children=[np, vp[0], pp, period]))
-        simples.append(Tree('S', children=[np, vp[0], period]))
-        simples.append(Tree('S', children=[np, vp[3], period]))
+        simples.extend(self.__get_simples_from_np_vp(np, vp[0], pp))
+        simples.extend(self.__get_simples_from_np_vp(np, vp[2]))
     else:
       simples.append(orig)
       if pp != None:
