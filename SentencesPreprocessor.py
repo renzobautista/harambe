@@ -99,7 +99,7 @@ class SentencesPreprocessor():
     elif ['VP', ',', 'CC', 'VP'] == immediate_labels(vp)[:4]:
       if vp[2][0] == 'and':
         simples.extend(self.__get_simples_from_np_vp(np, vp[0], pp))
-        simples.extend(self.__get_simples_from_np_vp(np, vp[2]))
+        simples.extend(self.__get_simples_from_np_vp(np, vp[3]))
     else:
       simples.append(orig)
       if pp != None:
