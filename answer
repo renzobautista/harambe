@@ -5,6 +5,7 @@ import en
 import sys
 import nltk
 import string
+import unicodedata
 
 from SentenceParser import SentenceParser
 from nltk.stem.snowball import SnowballStemmer
@@ -63,7 +64,10 @@ stopwords = [
 
 
 def main(args):
-  doc = open(args[0]).read()
+  d = open(args[0])
+  append(d)
+  doc = d.read()
+  doc = unicodedata.normalize('NFKD', doc.decode("utf8")).encode('ascii','ignore')
   qfile = open(args[1]).read()
   questions = parseQ(qfile.splitlines())
   parseDoc(doc)
@@ -92,6 +96,12 @@ def first_word(string):
 
   return result
 
+
+def append(d):
+  first_line = d.readline()
+  for w in first_line.split(" "):
+    # print w
+    stopwords.append(w)
 
 def tokenize(text):
   tokens = nltk.word_tokenize(text)
@@ -201,20 +211,21 @@ def findDoc(q, tfidf):
 
 def answer(q, docNum, tfidf):
   targetSentence = sentences[docNum]
-  # print "Question (parsed): ", q
-  # print "Target sentence (parsed): ", targetSentence
+  print "Question (parsed): ", q
+  print "Target sentence (parsed): ", targetSentence
   fw = first_word(q)
   if (fw not in wh):
     # yes/no question
     tfidf.fit_transform([q])
-    # print set([q[0]])
-    fsq = set(tfidf.get_feature_names()).difference(set([q.split()[0]]))
-    fst = targetSentence.split()
+    # print q
+    fsq = set(tfidf.get_feature_names()).difference(set(fw))
+    tfidf.fit_transform([targetSentence])
+    fst = set(tfidf.get_feature_names())
     # print "fsq: ", fsq, "fst: ", fst
-    if(fsq.issubset(set(fst))):
-      print "Yes. \n"
+    if(fsq.issubset(fst)):
+      print "Yes."
     else:
-      print "No. \n"
+      print "No."
      # evaluate: ???? train some data set
      # think of different metrics to get the target sentence
      # document about is the grass not green?
@@ -225,21 +236,21 @@ def answer(q, docNum, tfidf):
     # look at first word and do separate cases based on that - group by cases of second word
     # take parts of the sentence and stitch them together
     if(fw == "who"):
-      print "who\n"
+      print "who"
     elif(fw == "what"):
-      print "what\n"
+      print "what"
     elif(fw == "when"):
-      print "when\n"
+      print "when"
     elif(fw == "where"):
-      print "where\n"
+      print "where"
     elif(fw == "how"):
-      print "how\n"
+      print "how"
     elif(fw == "why"):
-      print "why\n"
+      print "why"
     elif(fw == "which"):
-      print "which\n"
+      print "which"
     elif(fw == "whose"):
-      print "whose\n"
+      print "whosex"
     else:
       sys.exit("Invalid question!")
 
