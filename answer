@@ -17,7 +17,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 stemmer = SnowballStemmer("english")
 sentences = []
-wh = ["Who", "What", "When", "Where", "How", "Why", "Which", "Whose"]
+wh = ["who", "what", "when", "where", "how", "why", "which", "whose"]
 stopwords = [
     "a", "about", "above", "across", "after", "afterwards", "again", "against",
     "all", "almost", "alone", "along", "already", "also", "although", "always",
@@ -129,11 +129,11 @@ def parseQ(qarray):
 
 def parseDoc(doc):
   sent = sent_tokenize(doc)
-  print "\nSource:"
+  # print "\nSource:"
   for s in sent:
-    print s
+    # print s
     sentences.append(s.lower().translate(None, string.punctuation))
-  print "\n"
+  # print "\n"
 
 
 def tenseHelper(tree):
@@ -195,15 +195,16 @@ def findDoc(q, tfidf):
 
 def answer(q, docNum, tfidf):
   targetSentence = sentences[docNum]
-  print "Question (parsed): ", q
-  print "Target sentence (parsed): ", targetSentence
-  if (first_word(q) not in wh):
+  # print "Question (parsed): ", q
+  # print "Target sentence (parsed): ", targetSentence
+  fw = first_word(q)
+  if (fw not in wh):
     # yes/no question
     tfidf.fit_transform([q])
     # print set([q[0]])
     fsq = set(tfidf.get_feature_names()).difference(set([q.split()[0]]))
     fst = targetSentence.split()
-    print "fsq: ", fsq, "fst: ", fst
+    # print "fsq: ", fsq, "fst: ", fst
     if(fsq.issubset(set(fst))):
       print "Yes. \n"
     else:
@@ -215,9 +216,26 @@ def answer(q, docNum, tfidf):
     # wh question
     # if in the form of wh/word + SQ (ex. when did you eat), look at tense of second word in SQ 
 
-    # look at first word and do separate cases based on that
+    # look at first word and do separate cases based on that - group by cases of second word
     # take parts of the sentence and stitch them together
-    pass
+    if(fw == "who"):
+      print "who\n"
+    elif(fw == "what"):
+      print "what\n"
+    elif(fw == "when"):
+      print "when\n"
+    elif(fw == "where"):
+      print "where\n"
+    elif(fw == "how"):
+      print "how\n"
+    elif(fw == "why"):
+      print "why\n"
+    elif(fw == "which"):
+      print "which\n"
+    elif(fw == "whose"):
+      print "whose\n"
+    else:
+      sys.exit("Invalid question!")
 
 
 if __name__ == '__main__':
