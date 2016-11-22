@@ -160,16 +160,21 @@ def qtense(q):
   # print "parsed: ", parsed
   # print "type: ", type(parsed[0].label())
   if(parsed[0].label() == 'VBD'):
+    # print "past"
     # find main verb if any
     # get past tense
     # replace verb with past tense
     v = tenseHelper(parsed)
+    # print "v: ", v
     if(v != ""):
+      # print "here?"
       # print "verb to change: ", v
       vp = en.verb.past(v)
+      # print "vp: ", vp
       q = q.replace(" " + v + " ", " " + vp + " ")
       # print "changed q: ", q
       return q
+    return q
   else:
     return q
 
@@ -180,6 +185,7 @@ def findDoc(q, tfidf):
   docNum = 0
 
   for s in sentences:
+    # print q, s
     tfidf_matrix = tfidf.fit_transform([q, s])
     cosine_sim = ((tfidf_matrix * tfidf_matrix.T).A)[0,1]
     # print "s: ", s
