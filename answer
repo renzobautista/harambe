@@ -211,8 +211,8 @@ def findDoc(q, tfidf):
 
 def answer(q, docNum, tfidf):
   targetSentence = sentences[docNum]
-  print "Question (parsed): ", q
-  print "Target sentence (parsed): ", targetSentence
+  # print "Question (parsed): ", q
+  # print "Target sentence (parsed): ", targetSentence
   fw = first_word(q)
   if (fw not in wh):
     # yes/no question
