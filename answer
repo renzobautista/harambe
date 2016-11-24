@@ -66,6 +66,7 @@ stopwords = [
 def main(args):
   d = open(args[0])
   append(d)
+  # print stopwords
   doc = d.read()
   doc = unicodedata.normalize('NFKD', doc.decode("utf8")).encode('ascii','ignore')
   qfile = open(args[1]).read()
@@ -100,8 +101,9 @@ def first_word(string):
 def append(d):
   first_line = d.readline()
   for w in first_line.split(" "):
-    # print w
+    w = w.replace("\n", "").lower()
     stopwords.append(w)
+
 
 def tokenize(text):
   tokens = nltk.word_tokenize(text)
@@ -148,15 +150,20 @@ def parseDoc(doc):
 
 def tenseHelper(tree):
   # print "tree: ", tree
-  if(len(tree) == 1):
-    if(tree.label() == 'VB' or tree.label() == 'VBP'):
-      return tree[0]
-    else:
-      return ""
-  for i in xrange(len(tree)):
-    t = tenseHelper(tree[i])
-    if(t != ""):
-      return t
+  # if(len(tree) == 1):
+  #   if(tree.label() == 'VB' or tree.label() == 'VBP'):
+  #     return tree[0]
+  #   else:
+  #     return ""
+  # for i in xrange(len(tree)):
+  #   t = tenseHelper(tree[i])
+  #   if(t != ""):
+  #     return t
+  # return ""
+  for i in xrange(1, len(tree)):
+    (word, tag) = tree[i]
+    if(tag == 'VB' or tag == 'VBP'):
+      return word
   return ""
 
 
@@ -166,10 +173,11 @@ def qtense(q):
     # Who wrote the poem?
 
   # print "here: ", q
-  parsed = SentenceParser.parse(q)[0]
+  parsed = SentenceParser.parse(q).pos()
+  (fw, first_tag) = parsed[0]
   # print "parsed: ", parsed
-  # print "type: ", type(parsed[0].label())
-  if(parsed[0].label() == 'VBD'):
+  # print first_tag
+  if(first_tag == 'VBD'):
     # print "past"
     # find main verb if any
     # get past tense
@@ -211,21 +219,26 @@ def findDoc(q, tfidf):
 
 def answer(q, docNum, tfidf):
   targetSentence = sentences[docNum]
-  # print "Question (parsed): ", q
-  # print "Target sentence (parsed): ", targetSentence
+  print "Question (parsed): ", q
+  print "Target sentence (parsed): ", targetSentence
   fw = first_word(q)
+  # print fw
+  q = q.replace(fw + " ", "")
+  # print q
   if (fw not in wh):
     # yes/no question
     tfidf.fit_transform([q])
     # print q
-    fsq = set(tfidf.get_feature_names()).difference(set(fw))
+    fsq = set(tfidf.get_feature_names())
+    # print fw
+    # print set(fw)
     tfidf.fit_transform([targetSentence])
     fst = set(tfidf.get_feature_names())
-    # print "fsq: ", fsq, "fst: ", fst
+    print "fsq: ", fsq, "fst: ", fst
     if(fsq.issubset(fst)):
-      print "Yes."
+      print "Yes.\n"
     else:
-      print "No."
+      print "No.\n"
      # evaluate: ???? train some data set
      # think of different metrics to get the target sentence
      # document about is the grass not green?
