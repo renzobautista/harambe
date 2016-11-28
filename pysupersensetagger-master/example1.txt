@@ -1,0 +1,10 @@
+The	DT
+U.S.	NNP
+went	VBD
+on	RP
+to	TO
+win	VB
+against	IN
+Norway	NNP
+41	CD
+.	.

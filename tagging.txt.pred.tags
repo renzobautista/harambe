@@ -1,0 +1,32 @@
+1	The	the	DT	O	0			
+2	U.S.	u.s.	NNP	B-GROUP	0		GROUP	
+3	went	go	VBD	Ī	2	_		
+4	on	on	RP	Ī	3	_		
+5	to	to	TO	O	0			
+6	win	win	VB	O-social	0		social	
+7	against	against	IN	O	0			
+8	Norway	norway	NNP	O-LOCATION	0		LOCATION	
+9	41	41	CD	O	0			
+10	.	.	.	O	0			
+11	On	on	IN	O	0			
+12	November	november	NNP	O-TIME	0		TIME	
+13	12	12	CD	O	0			
+14	,	,	,	O	0			
+15	2012	2012	CD	O	0			
+16	,	,	,	O	0			
+17	Stevens	stevens	NNP	O-PERSON	0		PERSON	
+18	was	be	VBD	O-`a	0		`a	
+19	arrested	arrest	VBN	O-motion	0		motion	
+20	on	on	IN	O	0			
+21	investigation	investigation	NN	O-COGNITION	0		COGNITION	
+22	of	of	IN	O	0			
+23	assault	assault	NN	O-ACT	0		ACT	
+24	following	follow	VBG	O-change	0		change	
+25	an	an	DT	O	0			
+26	altercation	altercation	NN	O-COMMUNICATION	0		COMMUNICATION	
+27	that	that	WDT	O	0			
+28	left	leave	VBD	O-stative	0		stative	
+29	Solo	solo	NNP	B-COMMUNICATION	0		COMMUNICATION	
+30	injured	injure	VBN	Ī	29	_		
+31	.	.	.	O	0			
+
