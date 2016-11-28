@@ -33,5 +33,5 @@ class TextParser():
         rv = ""
         for line in content.splitlines():
             if len(line) > 80:
-                rv += line
+                rv += line + " "
         return rv
