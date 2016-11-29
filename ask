@@ -12,16 +12,19 @@ article_path = sys.argv[1]
 num_questions = int(sys.argv[2])
 sentences = TextParser(article_path).to_sentences()
 simple_sentences = SentencesPreprocessor(sentences).generate_simple_sentences()
-random.shuffle(simple_sentences)
-generated = []
-i = 0
+
+question_bank = []
 for s in simple_sentences:
-  for question in QuestionGenerator(s).create():
-      if question not in generated:
-        if QuestionRanker(question).score() > 0.5:
-          print question
-          i += 1
-          generated.append(question)
-          break
-  if i == num_questions:
-    break
+  questions = QuestionGenerator(s).create()
+  for question in questions:
+    if question not in question_bank:
+      question_bank.append(question)
+
+qgs = map(lambda x: QuestionRanker(x), question_bank)
+sentence_scores = map(lambda x: (x.question, x.score()), qgs)
+ranked = sorted(sentence_scores, key=lambda x: x[1], reverse=True)
+
+i = 0
+while i < len(ranked) and i < num_questions:
+  print ranked[i][0]
+  i += 1

@@ -60,3 +60,11 @@ def rightmost_pp(t):
       return (s[len(s) - 1], s)
     s = s[len(s) - 1]
   return (None, None)
+
+def first_right_np_pp(t):
+  s = t
+  while isinstance(s[len(s) - 1], Tree):
+    if s[len(s) - 1].label() in ['NP', 'PP']:
+      return (s[len(s) - 1], s)
+    s = s[len(s) - 1]
+  return (None, None)

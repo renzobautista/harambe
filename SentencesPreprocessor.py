@@ -93,13 +93,11 @@ class SentencesPreprocessor():
     # print immediate_labels(vp)
     # print vp
     if ['VP', 'CC', 'VP'] == immediate_labels(vp)[:3]:
-      if vp[1][0] == 'and':
-        simples.extend(self.__get_simples_from_np_vp(np, vp[0], pp))
-        simples.extend(self.__get_simples_from_np_vp(np, vp[2]))
+      simples.extend(self.__get_simples_from_np_vp(np, vp[0], pp))
+      simples.extend(self.__get_simples_from_np_vp(np, vp[2]))
     elif ['VP', ',', 'CC', 'VP'] == immediate_labels(vp)[:4]:
-      if vp[2][0] == 'and':
-        simples.extend(self.__get_simples_from_np_vp(np, vp[0], pp))
-        simples.extend(self.__get_simples_from_np_vp(np, vp[3]))
+      simples.extend(self.__get_simples_from_np_vp(np, vp[0], pp))
+      simples.extend(self.__get_simples_from_np_vp(np, vp[3]))
     else:
       simples.append(orig)
       if pp != None:
@@ -140,11 +138,18 @@ class SentencesPreprocessor():
     self.__remove_comma_modifiers(t)
     self.__clean_nps(t, so_far)
     for s in t:
-      if s.label() == 'S':
+      if isinstance(s, Tree) and s.label() == 'S':
         simples.extend(self.__extract_simples(s, so_far))
     for i in xrange(len(t) - 1):
-      if t[i].label() == 'NP' and t[i+1].label() == 'VP':
+      if isinstance(t[i], Tree) and isinstance(t[i+1], Tree) and t[i].label() == 'NP' and t[i+1].label() == 'VP':
         simples.extend(self.__get_simples_from_np_vp(t[i], t[i+1]))
+    skip_label_tests = False
+    for s in t:
+      if not isinstance(s, Tree):
+        skip_label_tests = True
+        break
+    if skip_label_tests:
+      return simples
     if ['NP', 'VP', '.'] == immediate_labels(t):
       simples.extend(self.__get_simples_from_np_vp(t[0], t[1]))
     elif ['NP', 'ADVP', 'VP', '.'] == immediate_labels(t):
