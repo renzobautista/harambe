@@ -49,7 +49,7 @@ def immediate_labels(t):
 
 def leftmost(t):
   s = t
-  while isinstance(s[0], Tree):
+  while len(s) > 0 and isinstance(s[0], Tree):
     s = s[0]
   return s
 

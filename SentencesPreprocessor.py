@@ -133,7 +133,7 @@ class SentencesPreprocessor():
 
   def __extract_simples(self, t, so_far):
     simples = []
-    while len(t) == 1:
+    while len(t) == 1 and isinstance(t[0], Tree):
       t = t[0]
     self.__remove_comma_modifiers(t)
     self.__clean_nps(t, so_far)
