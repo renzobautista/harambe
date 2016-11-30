@@ -1,6 +1,6 @@
 #!/bin/bash
 
-data=$1 # word and POS tag on each line (tab-separated)
+data=$1
 q=$2
 
 ./answer1.py $data $q

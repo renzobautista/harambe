@@ -1,0 +1,42 @@
+Question (parsed):  were three goals conceded to christine sinclair in the semifinal
+Target sentence (parsed):  three goals were conceded to christine sinclair in the semifinal a thrilling and controversial 43 extratime lastminute win against canada
+Yes.
+
+Question (parsed):  was  500000 donated to seattle humane society on her behalf
+Target sentence (parsed):  500000 was donated to seattle humane society on her behalf
+Yes.
+
+Question (parsed):  is solo married to former american football player jerramy stevens
+Target sentence (parsed):  solo is married to former american football player jerramy stevens
+Yes.
+
+Question (parsed):  was solo linked with a transfer to english club manchester city
+Target sentence (parsed):  in october 2013 solo was linked with a transfer to english club manchester city
+Yes.
+
+Question (parsed):  where was solo named to the us womens national soccer team roster
+Target sentence (parsed):  solo was named to the us womens national soccer team roster for the postworld cup tour but did not attend the first workout ahead of the first game against mexico
+Of the first game against Mexico.
+
+
+Question (parsed):  was stevens arrested on investigation of assault following an altercation that left solo injured
+Target sentence (parsed):  on november 12 2012 stevens was arrested on investigation of assault following an altercation that left solo injured
+Yes.
+
+Question (parsed):  has solo made appearances on the late show with david letterman
+Target sentence (parsed):  solo has made appearances on the late show with david letterman piers morgan tonight late night with jimmy fallon the ellen degeneres show chelsea lately and whitney
+Yes.
+
+Question (parsed):  was solo ranked by ea sports as the  8 womens player in the game
+Target sentence (parsed):  in september 2015 solo was ranked by ea sports as the 8 womens player in the game
+Yes.
+
+Question (parsed):  when was stevens arrested on investigation of assault following an altercation that left solo injured
+Target sentence (parsed):  on november 12 2012 stevens was arrested on investigation of assault following an altercation that left solo injured
+On November 12, 2012, Stevens was arrested on investigation of assault following an altercation that left Solo injured.
+
+
+Question (parsed):  was solo born in richland on july 30 to judy lynn and jeffrey solo
+Target sentence (parsed):  solo was born in richland washington on july 30 1981 to judy lynn and jeffrey solo
+Yes.
+

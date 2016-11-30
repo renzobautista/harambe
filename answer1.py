@@ -1,31 +1,46 @@
 #!/usr/bin/python
 
+# Usage: ./answer1.py src.txt q.txt
+# input: 
+#    - src.txt: source document to generate answers from
+#    - q.txt: document containing n line-separated questions
+# assumes input documents are under the same working directory
+#
+# output:
+#    - parsedQs.txt: document of n line-separated, parsed questions
+#    - targetSentences.txt: document of n line-separated, parsed sentences. Each
+#                           sentence is the most similar sentence, and thus the
+#                           one we will draw the answer from, to the correspond-
+#                           ing question in parsedQs.txt 
+#    - tagging.txt: correctly formatted document containing n lines (n = # of 
+#                   wh questions) of data to run the script sst.sh with
+#    - original.txt: document containing information of mappings from parsed
+#                    sentences to original sentences from src.txt, one each line
+#
+# ** KNOWN ISSUE **: 
+# The John Reranking procedure in bllipparser sometimes causes a segfault - 
+# documented here: https://github.com/BLLIP/bllip-parser/issues/49
+# If this happens, please just run the same command again, and it should work.
 
 import en
-import os
 import re
 import sys
 import nltk
 import string
-import subprocess
 import unicodedata
 import treehelpers
 
+from nltk.tokenize import sent_tokenize
 from SentenceParser import SentenceParser
 from nltk.stem.snowball import SnowballStemmer
-from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Assumes document containing n line-separated questions in the same path - 2nd arg
-# Assumes document to pull answers from also in the same path - 1st arg
-# http://www.bogotobogo.com/python/NLTK/tf_idf_with_scikit-learn_NLTK.php
 
-# https://github.com/BLLIP/bllip-parser/issues/49
 
-stemmer = SnowballStemmer("english")
 sentences = []
 global currprp
 original = dict()
+stemmer = SnowballStemmer("english")
 wh = ["who", "what", "when", "where", "how", "why", "which", "whose"]
 
 parsedQs = open("parsedQs.txt", "w")
@@ -42,13 +57,13 @@ stopwords = [
     "becomes", "becoming", "been", "before", "beforehand", "behind", "being",
     "below", "beside", "besides", "between", "beyond", "bill", "both",
     "bottom", "but", "by", "call", "can", "cannot", "cant", "co", "con",
-    "could", "couldnt", "cry", "de", "describe", "detail", "do", "done",
-    "down", "due", "during", "each", "eg", "eight", "either", "eleven", "else",
-    "elsewhere", "empty", "enough", "etc", "even", "ever", "every", "everyone",
-    "everything", "everywhere", "except", "few", "fifteen", "fifty", "fill",
-    "find", "fire", "first", "five", "for", "former", "formerly", "forty",
-    "found", "four", "from", "front", "full", "further", "get", "give", "go",
-    "had", "has", "hasnt", "have", "he", "hence", "here", "hereafter",
+    "could", "couldnt", "cry", "de", "describe", "detail", "do", "does", "did", 
+    "done", "down", "due", "during", "each", "eg", "eight", "either", "eleven", 
+    "else", "elsewhere", "empty", "enough", "etc", "even", "ever", "every", 
+    "everyone", "everything", "everywhere", "except", "few", "fifteen", "fifty", 
+    "fill", "find", "fire", "first", "five", "for", "former", "formerly", 
+    "forty", "found", "four", "from", "front", "full", "further", "get", "give",
+    "go", "had", "has", "hasnt", "have", "he", "hence", "here", "hereafter",
     "hereby", "herein", "hereupon", "hers", "herself", "himself", "his",
     "how", "however", "hundred", "i", "ie", "if", "in", "inc", "indeed",
     "interest", "into", "is", "it", "its", "itself", "keep", "last", "latter",
@@ -77,46 +92,36 @@ stopwords = [
     "yourselves"]
 
 
+
 def main(args):
   d = open(args[0])
-  # print "1"
   append(d)
-  # print "2"
-  # print stopwords
+
   doc = d.read()
-  # print "3"
-  doc = unicodedata.normalize('NFKD', doc.decode("utf8")).encode('ascii','ignore')
-  # print "4"
+  doc=unicodedata.normalize('NFKD',doc.decode("utf8")).encode('ascii','ignore')
+  
   qfile = open(args[1]).read()
-  # print "5"
   questions = parseQ(qfile.splitlines())
-  # print "6"
+
   global currprp
   currprp = ""
   parseDoc(doc)
-  # print "7"
 
   tfidf = TfidfVectorizer(tokenizer=tokenize, stop_words=stopwords)
-  # tfidf = TfidfVectorizer(tokenizer=tokenize)
 
   for q in questions:
     q = qtense(q)
-    # print q
-    # fw = first_word(q)
-    # q = q.replace(fw + " ", "")
     docNum = findDoc(q, tfidf)
     saveToFile(q, docNum)
 
-  # print "8"
   parsedQs.close()
   ts.close()
   tagging.close()
   o.close()
-  # print "9"
-
-  # print tfidf_matrix  
 
 
+
+# return the first space-delimited word in the string
 def first_word(string):
   result = ""
   for c in string:
@@ -124,10 +129,12 @@ def first_word(string):
       break
     else:
       result += c
-
   return result
 
 
+
+# append words in the article title to the list of stop words (i.e. words to 
+# ignore when doing tfidf calculations)
 def append(d):
   first_line = d.readline()
   for w in first_line.split():
@@ -135,6 +142,8 @@ def append(d):
     stopwords.append(w)
 
 
+
+# tokenize function for sentences using the nltk snowball stemmer
 def tokenize(text):
   tokens = nltk.word_tokenize(text)
   stems = []
@@ -143,10 +152,13 @@ def tokenize(text):
   return stems
 
 
+
+# generate array of parsed questions
 def parseQ(qarray):
   ret = []
+
   for q in qarray:
-    # get the actual question if composite sentence
+    # get the actual question if composite sentence (i.e. has a comma)
     if(', ' in q):
       qsplit = q.split(', ')
       s1 = SentenceParser.parse(qsplit[0])[0].label()
@@ -159,7 +171,6 @@ def parseQ(qarray):
       if(s2 == "SQ" or s2 == "SQARQ"):
         ret.append(qsplit[1].lower().translate(None, string.punctuation)) 
         s2b = True
-
       # fall through case
       if(not(s1b or s2b)):
         ret.append(qsplit[0].lower().translate(None, string.punctuation))
@@ -169,20 +180,18 @@ def parseQ(qarray):
   return ret
 
 
+
+# simple pronoun resolution: each sentence replaces the np pronoun with the np
+# of the most recent sentence. Each time a sentence has a non-pronoun np, the 
+# global tracker currprp is changed accordingly to keep track of the most
+# recently seen np
 def np_res(s):
-  # print "here"
   global currprp
-  # print "middle?"
-  # print "s: ", s
   t = SentenceParser.parse(s)
-  # print "there"
   t = t[0]
-  # print "nowhere"
   for i in xrange(len(t)):
-    # print "looping"
     if(t[i].label() == 'NP'):
       lm = treehelpers.leftmost(t[i])
-      # print "found"
       if(lm.label() == 'PRP'):
         if(currprp != ""):
           s = s.replace(lm[0] + " ", currprp + " ", 1)
@@ -193,41 +202,26 @@ def np_res(s):
   return s
 
 
+
+# parses all sentence in the source document
 def parseDoc(doc):
   sent = sent_tokenize(doc)
-  # print "sent: ", sent
-  # print "\nSource:"
   for s in sent:
-    # print s
     if("\n" in s):
-      # print "where's this n?"
       tmp = s.splitlines()
       s = tmp[len(tmp)-1]
-    # simple pronoun coresolution
-    # print "sanity"
     s = np_res(s)
-    # print "shmer"
+    # erase all content between parenthese to simplify
     s = re.sub(r' \((.*?)\)', "", s)
     snew = s.lower().translate(None, string.punctuation)
-    # print "snew: ", snew
     sentences.append(snew)
     original[snew] = s
     o.write(snew + "  XIAOHANLANDREW  " + s + "\n")
-  # print "\n"
 
 
+
+# return the verb in the nltk tree
 def tenseHelper(tree):
-  # print "tree: ", tree
-  # if(len(tree) == 1):
-  #   if(tree.label() == 'VB' or tree.label() == 'VBP'):
-  #     return tree[0]
-  #   else:
-  #     return ""
-  # for i in xrange(len(tree)):
-  #   t = tenseHelper(tree[i])
-  #   if(t != ""):
-  #     return t
-  # return ""
   for i in xrange(1, len(tree)):
     (word, tag) = tree[i]
     if(tag == 'VB' or tag == 'VBP'):
@@ -235,51 +229,44 @@ def tenseHelper(tree):
   return ""
 
 
-def qtense(q):
-  # tense for wh questions:
-    # Who did we see last night?
-    # Who wrote the poem?
 
-  # print "here: ", q
+# if a question is asking in past tense, e.g. "Who did we see last night?", find
+# the main verb and replace it with its past tense form. The example question
+# would be changed to "Who did we saw last night?"
+# this change is done for parsing and word matching purposes
+def qtense(q):
   qnew = q
   fw = first_word(qnew)
+
   if(fw in wh):
     qnew = qnew.replace(fw + " ", "")
+
   parsed = SentenceParser.parse(qnew).pos()
   (fw, first_tag) = parsed[0]
-  # print "parsed: ", parsed
-  # print first_tag
   if(first_tag == 'VBD'):
-    # print "past"
-    # find main verb if any
-    # get past tense
-    # replace verb with past tense
     v = tenseHelper(parsed)
-    # print "v: ", v
     if(v != ""):
-      # print "here?"
-      # print "verb to change: ", v
       vp = en.verb.past(v)
-      # print "vp: ", vp
       q = q.replace(" " + v + " ", " " + vp + " ", 1)
-      # print "changed q: ", q
       return q
     return q
   else:
     return q
 
 
+
+# find the most relevant sentence from the source document that most closely
+# matches the question
+# algorithm: loop through all sentences and return the one with the highest
+#            tfidf score with respect to the question
 def findDoc(q, tfidf):
   maximum = -sys.maxint-1
   count = 0
   docNum = 0
 
   for s in sentences:
-    # print q, s
     tfidf_matrix = tfidf.fit_transform([q, s])
     cosine_sim = ((tfidf_matrix * tfidf_matrix.T).A)[0,1]
-    # print "s: ", s
-    # print "cosine: ", cosine_sim
 
     if cosine_sim > maximum:
       docNum = count
@@ -289,11 +276,12 @@ def findDoc(q, tfidf):
   return docNum
 
 
+
+# save the parsed question and sentence tagging information to the relevant
+# files to be used by answer2.py
 def saveToFile(q, docNum):
   parsedQs.write(q + "\n")
-  # print "sentences: ", sentences
   targetSentence = sentences[docNum]
-  # print "targetSentence: ", targetSentence
   ts.write(targetSentence + "\n")
   if(first_word(q) in wh):
     p = SentenceParser.parse(original[targetSentence]).pos()
@@ -301,6 +289,7 @@ def saveToFile(q, docNum):
       (w, t) = p[i]
       tagging.write(w + "\t" + t + "\n")
     tagging.write("\n")
+
 
 
 if __name__ == '__main__':
