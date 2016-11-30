@@ -3,11 +3,13 @@
 
 import en
 import os
+import re
 import sys
 import nltk
 import string
 import subprocess
 import unicodedata
+import treehelpers
 
 from SentenceParser import SentenceParser
 from nltk.stem.snowball import SnowballStemmer
@@ -18,16 +20,18 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # Assumes document to pull answers from also in the same path - 1st arg
 # http://www.bogotobogo.com/python/NLTK/tf_idf_with_scikit-learn_NLTK.php
 
-# https://github.com/BLLIP/bllip-parser/issues/50
+# https://github.com/BLLIP/bllip-parser/issues/49
 
 stemmer = SnowballStemmer("english")
 sentences = []
+global currprp
 original = dict()
 wh = ["who", "what", "when", "where", "how", "why", "which", "whose"]
 
 parsedQs = open("parsedQs.txt", "w")
 ts = open("targetSentences.txt", "w")
 tagging = open("tagging.txt", "w")
+o = open("original.txt", "w")
 
 stopwords = [
     "a", "about", "above", "across", "after", "afterwards", "again", "against",
@@ -75,13 +79,22 @@ stopwords = [
 
 def main(args):
   d = open(args[0])
+  # print "1"
   append(d)
+  # print "2"
   # print stopwords
   doc = d.read()
+  # print "3"
   doc = unicodedata.normalize('NFKD', doc.decode("utf8")).encode('ascii','ignore')
+  # print "4"
   qfile = open(args[1]).read()
+  # print "5"
   questions = parseQ(qfile.splitlines())
+  # print "6"
+  global currprp
+  currprp = ""
   parseDoc(doc)
+  # print "7"
 
   tfidf = TfidfVectorizer(tokenizer=tokenize, stop_words=stopwords)
   # tfidf = TfidfVectorizer(tokenizer=tokenize)
@@ -94,9 +107,12 @@ def main(args):
     docNum = findDoc(q, tfidf)
     saveToFile(q, docNum)
 
+  # print "8"
   parsedQs.close()
   ts.close()
   tagging.close()
+  o.close()
+  # print "9"
 
   # print tfidf_matrix  
 
@@ -153,14 +169,50 @@ def parseQ(qarray):
   return ret
 
 
+def np_res(s):
+  # print "here"
+  global currprp
+  # print "middle?"
+  # print "s: ", s
+  t = SentenceParser.parse(s)
+  # print "there"
+  t = t[0]
+  # print "nowhere"
+  for i in xrange(len(t)):
+    # print "looping"
+    if(t[i].label() == 'NP'):
+      lm = treehelpers.leftmost(t[i])
+      # print "found"
+      if(lm.label() == 'PRP'):
+        if(currprp != ""):
+          s = s.replace(lm[0] + " ", currprp + " ", 1)
+          return s
+      else:
+        currprp = lm[0]
+        return s
+  return s
+
+
 def parseDoc(doc):
   sent = sent_tokenize(doc)
+  # print "sent: ", sent
   # print "\nSource:"
   for s in sent:
     # print s
+    if("\n" in s):
+      # print "where's this n?"
+      tmp = s.splitlines()
+      s = tmp[len(tmp)-1]
+    # simple pronoun coresolution
+    # print "sanity"
+    s = np_res(s)
+    # print "shmer"
+    s = re.sub(r' \((.*?)\)', "", s)
     snew = s.lower().translate(None, string.punctuation)
+    # print "snew: ", snew
     sentences.append(snew)
     original[snew] = s
+    o.write(snew + "  XIAOHANLANDREW  " + s + "\n")
   # print "\n"
 
 
@@ -239,7 +291,9 @@ def findDoc(q, tfidf):
 
 def saveToFile(q, docNum):
   parsedQs.write(q + "\n")
+  # print "sentences: ", sentences
   targetSentence = sentences[docNum]
+  # print "targetSentence: ", targetSentence
   ts.write(targetSentence + "\n")
   if(first_word(q) in wh):
     p = SentenceParser.parse(original[targetSentence]).pos()

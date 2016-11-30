@@ -1,32 +1,142 @@
-1	The	the	DT	O	0			
-2	U.S.	u.s.	NNP	B-GROUP	0		GROUP	
-3	went	go	VBD	Ī	2	_		
-4	on	on	RP	Ī	3	_		
-5	to	to	TO	O	0			
-6	win	win	VB	O-social	0		social	
-7	against	against	IN	O	0			
-8	Norway	norway	NNP	O-LOCATION	0		LOCATION	
-9	41	41	CD	O	0			
-10	.	.	.	O	0			
-11	On	on	IN	O	0			
-12	November	november	NNP	O-TIME	0		TIME	
-13	12	12	CD	O	0			
-14	,	,	,	O	0			
-15	2012	2012	CD	O	0			
-16	,	,	,	O	0			
-17	Stevens	stevens	NNP	O-PERSON	0		PERSON	
-18	was	be	VBD	O-`a	0		`a	
-19	arrested	arrest	VBN	O-motion	0		motion	
-20	on	on	IN	O	0			
-21	investigation	investigation	NN	O-COGNITION	0		COGNITION	
-22	of	of	IN	O	0			
-23	assault	assault	NN	O-ACT	0		ACT	
-24	following	follow	VBG	O-change	0		change	
-25	an	an	DT	O	0			
-26	altercation	altercation	NN	O-COMMUNICATION	0		COMMUNICATION	
-27	that	that	WDT	O	0			
-28	left	leave	VBD	O-stative	0		stative	
-29	Solo	solo	NNP	B-COMMUNICATION	0		COMMUNICATION	
-30	injured	injure	VBN	Ī	29	_		
-31	.	.	.	O	0			
+1	Solo	solo	NNP	O	0			
+2	was	be	VBD	O-stative	0		stative	
+3	the	the	DT	O	0			
+4	starting	starting	JJ	O	0			
+5	goalkeeper	goalkeeper	NN	O-PERSON	0		PERSON	
+6	for	for	IN	O	0			
+7	the	the	DT	O	0			
+8	majority	majority	NN	O-QUANTITY	0		QUANTITY	
+9	of	of	IN	O	0			
+10	the	the	DT	O	0			
+11	2007	2007	CD	O	0			
+12	FIFA	fifa	NNP	O-GROUP	0		GROUP	
+13	Women	woman	NNS	B-GROUP	0		GROUP	
+14	's	's	POS	Ī	13	_		
+15	World	world	NNP	Ī	14	_		
+16	Cup	cup	NNP	Ī	15	_		
+17	and	and	CC	O	0			
+18	helped	help	VBD	O-social	0		social	
+19	lead	lead	VB	O-social	0		social	
+20	the	the	DT	O	0			
+21	U.S.	u.s.	NNP	O-GROUP	0		GROUP	
+22	national	national	JJ	O	0			
+23	team	team	NN	O-GROUP	0		GROUP	
+24	to	to	TO	O	0			
+25	the	the	DT	O	0			
+26	semifinals	semifinal	NNS	O-EVENT	0		EVENT	
+27	having	have	VBG	O-`a	0		`a	
+28	given	give	VBN	B-social	0		social	
+29	up	up	RP	Ī	28	_		
+30	only	only	RB	O	0			
+31	two	two	CD	O	0			
+32	goals	goal	NNS	O-COGNITION	0		COGNITION	
+33	in	in	IN	O	0			
+34	four	four	CD	O	0			
+35	games	game	NNS	O-EVENT	0		EVENT	
+36	,	,	,	O	0			
+37	including	include	VBG	O-stative	0		stative	
+38	three	three	CD	O	0			
+39	consecutive	consecutive	JJ	O	0			
+40	shutouts	shutout	NNS	O-EVENT	0		EVENT	
+41	.	.	.	O	0			
+
+1	After	after	IN	O	0			
+2	being	be	VBG	O-stative	0		stative	
+3	heavily	heavily	RB	O	0			
+4	recruited	recruit	VBN	O-social	0		social	
+5	by	by	IN	O	0			
+6	several	several	JJ	O	0			
+7	colleges	college	NNS	O-GROUP	0		GROUP	
+8	around	around	IN	O	0			
+9	the	the	DT	O	0			
+10	country	country	NN	O-LOCATION	0		LOCATION	
+11	,	,	,	O	0			
+12	Solo	solo	NNP	O-GROUP	0		GROUP	
+13	attended	attend	VBD	O-social	0		social	
+14	the	the	DT	O	0			
+15	University	university	NNP	O-GROUP	0		GROUP	
+16	of	of	IN	O	0			
+17	Washington	washington	NNP	O-LOCATION	0		LOCATION	
+18	from	from	IN	O	0			
+19	1999	1999	CD	O	0			
+20	to	to	TO	O	0			
+21	2002	2002	CD	O	0			
+22	where	where	WRB	O	0			
+23	she	she	PRP	O	0			
+24	majored	major	VBD	B-emotion	0		emotion	
+25	in	in	IN	Ī	24	_		
+26	speech	speech	NN	Ī	25	_		
+27	communications	communications	NNS	O-COMMUNICATION	0		COMMUNICATION	
+28	.	.	.	O	0			
+
+1	After	after	IN	O	0			
+2	being	be	VBG	O-stative	0		stative	
+3	heavily	heavily	RB	O	0			
+4	recruited	recruit	VBN	O-social	0		social	
+5	by	by	IN	O	0			
+6	several	several	JJ	O	0			
+7	colleges	college	NNS	O-GROUP	0		GROUP	
+8	around	around	IN	O	0			
+9	the	the	DT	O	0			
+10	country	country	NN	O-LOCATION	0		LOCATION	
+11	,	,	,	O	0			
+12	Solo	solo	NNP	O-GROUP	0		GROUP	
+13	attended	attend	VBD	O-social	0		social	
+14	the	the	DT	O	0			
+15	University	university	NNP	O-GROUP	0		GROUP	
+16	of	of	IN	O	0			
+17	Washington	washington	NNP	O-LOCATION	0		LOCATION	
+18	from	from	IN	O	0			
+19	1999	1999	CD	O	0			
+20	to	to	TO	O	0			
+21	2002	2002	CD	O	0			
+22	where	where	WRB	O	0			
+23	she	she	PRP	O	0			
+24	majored	major	VBD	B-emotion	0		emotion	
+25	in	in	IN	Ī	24	_		
+26	speech	speech	NN	Ī	25	_		
+27	communications	communications	NNS	O-COMMUNICATION	0		COMMUNICATION	
+28	.	.	.	O	0			
+
+1	On	on	IN	O	0			
+2	November	november	NNP	O-TIME	0		TIME	
+3	12	12	CD	O	0			
+4	,	,	,	O	0			
+5	2012	2012	CD	O	0			
+6	,	,	,	O	0			
+7	Stevens	stevens	NNP	O-PERSON	0		PERSON	
+8	was	be	VBD	O-`a	0		`a	
+9	arrested	arrest	VBN	O-motion	0		motion	
+10	on	on	IN	O	0			
+11	investigation	investigation	NN	O-COGNITION	0		COGNITION	
+12	of	of	IN	O	0			
+13	assault	assault	NN	O-ACT	0		ACT	
+14	following	follow	VBG	O-change	0		change	
+15	an	an	DT	O	0			
+16	altercation	altercation	NN	O-COMMUNICATION	0		COMMUNICATION	
+17	that	that	WDT	O	0			
+18	left	leave	VBD	O-stative	0		stative	
+19	Solo	solo	NNP	B-COMMUNICATION	0		COMMUNICATION	
+20	injured	injure	VBN	Ī	19	_		
+21	.	.	.	O	0			
+
+1	Solo	solo	NNP	O-ACT	0		ACT	
+2	was	be	VBD	O-`a	0		`a	
+3	born	bear	VBN	O-stative	0		stative	
+4	in	in	IN	O	0			
+5	Richland	richland	NNP	O-LOCATION	0		LOCATION	
+6	,	,	,	O	0			
+7	Washington	washington	NNP	O-GROUP	0		GROUP	
+8	on	on	IN	O	0			
+9	July	july	NNP	O-TIME	0		TIME	
+10	30	30	CD	O	0			
+11	,	,	,	O	0			
+12	1981	1981	CD	O	0			
+13	to	to	TO	O	0			
+14	Judy	judy	NNP	B-GROUP	0		GROUP	
+15	Lynn	lynn	NNP	Ī	14	_		
+16	and	and	CC	O	0			
+17	Jeffrey	jeffrey	NNP	B-LOCATION	0		LOCATION	
+18	Solo	solo	NNP	Ī	17	_		
+19	.	.	.	O	0			
 

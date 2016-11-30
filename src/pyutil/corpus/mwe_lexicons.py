@@ -17,10 +17,10 @@ def load_lexicons(lexfiles, is_list=False):
     for lexfile in lexfiles:
         name = os.path.split(lexfile.name.replace('.json',''))[-1]
         assert name not in _lexicons,(name,_lexicons.keys())
-        print('loading', ('list' if is_list else 'lexicon'), name, end=' ', file=sys.stderr)
+        # print('loading', ('list' if is_list else 'lexicon'), name, end=' ', file=sys.stderr)
         resource = MultiwordLexicon(name, lexfile, is_list=is_list)
         (_lists if is_list else _lexicons)[name] = resource
-        print(len(resource._entries), 'entries', file=sys.stderr)
+        # print(len(resource._entries), 'entries', file=sys.stderr)
 
 def load_combined_lexicon(name, lexfiles, is_list=False):
     print('loading combined', ('list' if is_list else 'lexicon'), name, file=sys.stderr)

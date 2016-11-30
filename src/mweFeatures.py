@@ -43,7 +43,7 @@ def loadClusters(clusterFile, oldClusterFormat=False):
     global clusterMap
     clusterMap = {}
     
-    print("loading word clusters...", file=sys.stderr);
+    # print("loading word clusters...", file=sys.stderr);
     with gzip.open(clusterFile) as clusterF:
         if oldClusterFormat:    # each line is a cluster, with space-separated words
             clusterID = 0
@@ -63,7 +63,7 @@ def loadClusters(clusterFile, oldClusterFormat=False):
     for k in topClusterMembers.keys():
         topClusterMembers[k] = '_'.join(topClusterMembers[k].keys())
         
-    print("done.", file=sys.stderr);
+    # print("done.", file=sys.stderr);
 
 @memoize
 def wordClusterID(word):

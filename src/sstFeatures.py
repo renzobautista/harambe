@@ -48,7 +48,7 @@ def loadClusters(clusterFile, oldClusterFormat=False):
     global clusterMap
     clusterMap = {}
     
-    print("loading word clusters...", file=sys.stderr);
+    # print("loading word clusters...", file=sys.stderr);
     with gzip.open(clusterFile) as clusterF:
         if oldClusterFormat:    # each line is a cluster, with space-separated words
             clusterID = 0
@@ -68,7 +68,7 @@ def loadClusters(clusterFile, oldClusterFormat=False):
     for k in topClusterMembers.keys():
         topClusterMembers[k] = '_'.join(topClusterMembers[k].keys())
         
-    print("done.", file=sys.stderr);
+    # print("done.", file=sys.stderr);
 
 @memoize
 def wordClusterID(word):
@@ -208,7 +208,7 @@ if __name__=='__main__' and not os.path.exists(LEXDIR+'/wordnet_supersenses.json
             outF.write(json.dumps(entry)+'\n')
     print('done:',nSupersenseEntries,'entries', file=sys.stderr)
 if __name__!='__main__':
-    print('loading WordNet supersense lexicon...', file=sys.stderr, end=' ')
+    # print('loading WordNet supersense lexicon...', file=sys.stderr, end=' ')
     with open(LEXDIR+'/wordnet_supersenses.json') as inF:
         for ln in inF:
             entry = json.loads(ln.strip())
@@ -217,7 +217,7 @@ if __name__!='__main__':
              "n": [sst for sst in allsupersenses if sst.isupper() and '.' not in sst]}
             senseTrie[entry["lemmas"]] = supersenses
             nSupersenseEntries += 1
-        print('done:',nSupersenseEntries,'entries', file=sys.stderr)
+        # print('done:',nSupersenseEntries,'entries', file=sys.stderr)
 
 @memoize
 def _isO(label):

@@ -4,4 +4,5 @@ data=$1 # word and POS tag on each line (tab-separated)
 q=$2
 
 ./answer1.py $data $q
-./sst.sh tagging.txt
+./sst.sh tagging.txt 2> dump.txt
+./answer2.py $data $q

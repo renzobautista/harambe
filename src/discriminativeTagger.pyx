@@ -697,7 +697,7 @@ class DiscriminativeTagger(object):
                     if reportAcc:
                         print('word accuracy over {} words in {} instances: {:.2%}'.format(totalWordsProcessed, totalInstancesProcessed, (totalWordsProcessed-totalWordsIncorrect)/totalWordsProcessed), file=sys.stderr)
                     newStartTime = time.time()
-                    print('decoding time:',newStartTime-startTime, file=sys.stderr)
+                    #print('decoding time:',newStartTime-startTime, file=sys.stderr)
                     firstInPass = True
                     startTime = newStartTime
                     
@@ -721,7 +721,7 @@ class DiscriminativeTagger(object):
                 #print(',', end='', file=sys.stderr) # DEBUG
                 
                 if firstInPass: # print the tagging of the first sentence in the dataset
-                    print(' '.join(tkn.prediction for tkn in sent).encode('utf-8'), file=sys.stderr)
+                    #print(' '.join(tkn.prediction for tkn in sent).encode('utf-8'), file=sys.stderr)
                     firstInPass = False
                 
                 if totalInstancesProcessed%100==0:
@@ -900,11 +900,11 @@ def setup(args):
     # load or train a model or extract features
     
     if args.load is not None:
-        print('loading model from',args.load,'...', file=sys.stderr)
+        # print('loading model from',args.load,'...', file=sys.stderr)
         t = DiscriminativeTagger.loadModel(args.load)
         # override options used during training that may be different for prediction
         #t.setBinaryFeats(False)
-        print('done.', file=sys.stderr)
+        # print('done.', file=sys.stderr)
     else:
         t = DiscriminativeTagger(cutoff=args.cutoff, defaultY=args.defaultY)
         #t.setBinaryFeats(False)

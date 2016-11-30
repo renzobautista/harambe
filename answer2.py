@@ -2,13 +2,15 @@
 
 
 import en
-import os
+import re
 import sys
+import json
 import nltk
 import string
-import subprocess
 import unicodedata
+import treehelpers
 
+from nltk.tree import ParentedTree
 from SentenceParser import SentenceParser
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import sent_tokenize
@@ -23,6 +25,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 stemmer = SnowballStemmer("english")
 sentences = []
 original = dict()
+tagged = open("tagging.txt.pred.sst")
 wh = ["who", "what", "when", "where", "how", "why", "which", "whose"]
 stopwords = [
     "a", "about", "above", "across", "after", "afterwards", "again", "against",
@@ -33,9 +36,9 @@ stopwords = [
     "becomes", "becoming", "been", "before", "beforehand", "behind", "being",
     "below", "beside", "besides", "between", "beyond", "bill", "both",
     "bottom", "but", "by", "call", "can", "cannot", "cant", "co", "con",
-    "could", "couldnt", "cry", "de", "describe", "detail", "do", "done",
-    "down", "due", "during", "each", "eg", "eight", "either", "eleven", "else",
-    "elsewhere", "empty", "enough", "etc", "even", "ever", "every", "everyone",
+    "could", "couldnt", "cry", "de", "describe", "detail", "do", "does", "did", 
+    "done", "down", "due", "during", "each", "eg", "eight", "either", "eleven", 
+    "else", "elsewhere", "empty", "enough", "etc", "even", "ever", "every", "everyone",
     "everything", "everywhere", "except", "few", "fifteen", "fifty", "fill",
     "find", "fire", "first", "five", "for", "former", "formerly", "forty",
     "found", "four", "from", "front", "full", "further", "get", "give", "go",
@@ -74,20 +77,23 @@ def main(args):
   # print stopwords
   doc = d.read()
   doc = unicodedata.normalize('NFKD', doc.decode("utf8")).encode('ascii','ignore')
-  qfile = open(args[1]).read()
-  questions = parseQ(qfile.splitlines())
+  # qfile = open(args[1]).read()
+  # questions = parseQ(qfile.splitlines())
+  questions = readQ()
   parseDoc(doc)
 
   tfidf = TfidfVectorizer(tokenizer=tokenize, stop_words=stopwords)
   # tfidf = TfidfVectorizer(tokenizer=tokenize)
 
+  count = 0
   for q in questions:
-    q = qtense(q)
+    # q = qtense(q)
     # print q
     # fw = first_word(q)
     # q = q.replace(fw + " ", "")
-    docNum = findDoc(q, tfidf)
-    answer(q, docNum, tfidf)
+    # docNum = findDoc(q, tfidf)
+    answer(q, count, tfidf)
+    count += 1
   
   # print tfidf_matrix  
 
@@ -118,152 +124,321 @@ def tokenize(text):
   return stems
 
 
-def parseQ(qarray):
-  ret = []
-  for q in qarray:
-    # get the actual question if composite sentence
-    if(', ' in q):
-      qsplit = q.split(', ')
-      s1 = SentenceParser.parse(qsplit[0])[0].label()
-      s2 = SentenceParser.parse(qsplit[1])[0].label()
-      s1b = False
-      s2b = False
-      if(s1 == "SQ" or s1 == "SQARQ"):
-        ret.append(qsplit[0].lower().translate(None, string.punctuation)) 
-        s1b = True
-      if(s2 == "SQ" or s2 == "SQARQ"):
-        ret.append(qsplit[1].lower().translate(None, string.punctuation)) 
-        s2b = True
-
-      # fall through case
-      if(not(s1b or s2b)):
-        ret.append(qsplit[0].lower().translate(None, string.punctuation))
-    
-    else:
-      ret.append(q.lower().translate(None, string.punctuation)) 
-  return ret
+def readQ():
+  q = open("parsedQs.txt").read()
+  return q.splitlines()
 
 
 def parseDoc(doc):
-  sent = sent_tokenize(doc)
-  # print "\nSource:"
-  for s in sent:
-    # print s
-    snew = s.lower().translate(None, string.punctuation)
-    sentences.append(snew)
-    original[snew] = s
-  # print "\n"
+  # sent = sent_tokenize(doc)
+  # # print "\nSource:"
+  # for s in sent:
+  #   # print s
+  #   snew = s.lower().translate(None, string.punctuation)
+  #   # sentences.append(snew)
+  #   original[snew] = s
+
+  o = open("original.txt").read().splitlines()
+  for l in o:
+    words = l.split("  XIAOHANLANDREW  ")
+    original[words[0]] = words[1]
+
+  tmp = open("targetSentences.txt").read().splitlines()
+  for i in xrange(len(tmp)):
+    sentences.append(tmp[i])
+  # print "sentences: ", sentences
 
 
-def tenseHelper(tree):
-  # print "tree: ", tree
-  # if(len(tree) == 1):
-  #   if(tree.label() == 'VB' or tree.label() == 'VBP'):
-  #     return tree[0]
-  #   else:
-  #     return ""
-  # for i in xrange(len(tree)):
-  #   t = tenseHelper(tree[i])
-  #   if(t != ""):
-  #     return t
-  # return ""
-  for i in xrange(1, len(tree)):
-    (word, tag) = tree[i]
-    if(tag == 'VB' or tag == 'VBP'):
-      return word
+def contained(q, s):
+  # print "in contained"
+  # print "q: ", q
+  s = s.lower().translate(None, string.punctuation)
+  # print "s: ", s
+  # tfidf.fit_transform([q])
+  # fsq = tfidf.get_feature_names()
+  # print "fsq: ", fsq
+  q1 = q.split()
+  # print "q1: ", q1
+  for w in q1:
+    if(w not in stopwords):
+      if(w not in s):
+        # print "not w: ", w
+        return False
+  return True
+
+
+def sentfromleaves(t):
+  return " ".join(t.leaves()).replace(" 's ", "'s ")
+
+
+
+def whoHelper(fw, q, stp, t, tfidf):
+  stitch = fw + " " + q
+  tstitch = SentenceParser.parse(stitch)
+  # tstitch.draw()
+  rest = tstitch[0][1]
+  if(len(rest) == 1):
+    rest = rest[0]
+  # rest.draw()
+  # print len(rest)==3
+  if(len(rest) == 2 and 'VB' in rest[0].label() and rest[1].label() == 'NP'):
+    ret = ""
+    tstp = SentenceParser.parse(stp)[0]
+    for i in xrange(len(tstp)):
+      if(tstp[i].label() == 'NP'):
+        ret = treehelpers.leftmost(t[i])[0]
+    
+    if(rest[0][0] in ["is", "was", "were", "are"]):
+      find = stp.split(rest[0][0] + " ")[1]
+      first = SentenceParser.parse(find)[0]
+      for i in xrange(len(first)):
+        if(first[i].label() == 'NP'):
+          n2 =  sentfromleaves(first[i])
+          rest1 = sentfromleaves(rest)
+
+          tfidf_matrix = tfidf.fit_transform([ret, rest1])
+          cosine_sim1 = ((tfidf_matrix * tfidf_matrix.T).A)[0,1]
+
+          tfidf_matrix = tfidf.fit_transform([n2, rest1])
+          cosine_sim2 = ((tfidf_matrix * tfidf_matrix.T).A)[0,1]
+
+          # print "pos1: ", pos1
+          # print "pos2: ", pos2
+          # print "cs1: ", cosine_sim1
+          # print "cs2: ", cosine_sim2
+
+          if cosine_sim1 > cosine_sim2:
+            return n2
+          else:
+            return ret
+    return ret
+  
+  elif(len(rest) == 3 and rest[2].label() == 'VP'):
+    # print "three"
+    aux = treehelpers.leftmost(rest)[0]
+    if(aux in ["does", "did", "do"]):
+      verb = treehelpers.leftmost(rest[2])[0]
+      # print "verb: ", verb
+      if(aux=="did"):
+        verb = en.verb.past(verb)
+        # print "past: ", verb
+      l = ""
+      tmp = stp.split(verb + " ")
+      if(first_word(stp) == verb):
+        l = tmp[0]
+      else:
+        l = tmp[1]
+      first = SentenceParser.parse(l)[0]
+      # first.draw()
+      # for i in xrange(len(first)):
+      #   if(first[i].label() == 'NP'):
+      #     return sentfromleaves(first[i])
+      nps = list(first.subtrees(filter=lambda x: x.label()=='PP'))
+      return sentfromleaves(nps[0])
+    else:
+      return stp
+
+
+def parsetd(superS):
+  td = dict()
+  for i in superS.keys():
+    (word, tag) = superS[i]
+    td[word] = tag
+  return td
+
+
+def whAnswer(fw, q, ts, tfidf):
+  whenere = tagged.readline()
+
+  s = original[ts]
+  # print "before: ", s
+  # s = re.sub(r' \((.*?)\)', "", s)
+  # print "after: ", s
+  # chunkS = nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(s)))
+  # print "super: ", superS
+  # print "chunk: ", chunkS
+
+  t = SentenceParser.parse(s)
+  ss = reversed(list(t.subtrees(filter=lambda x: x.label()=='S')))
+  # print "ss: ", ss
+  for st in ss:
+    # print "st: ", st
+    stp = sentfromleaves(st)
+    # print "stp: ", stp
+    if(contained(q, stp)):
+      # print "stp: ", stp
+
+      if(fw == "who"):
+        ret = whoHelper(fw, q, stp, t, tfidf)
+        if(ret != None and ret != ""):
+          return ret
+
+
+      elif(fw == "what" or fw == "which"):
+        if(fw == "what" and "happen" in first_word(q)):
+          return stp
+        ret = whoHelper(fw, q, stp, t, tfidf)
+        if(ret != None and ret != ""):
+          return ret
+
+
+
+      elif(fw == "when" or fw == "where"):
+        superS = json.loads(whenere.split("\t")[2])["labels"]
+        td = parsetd(superS)
+        tstp = SentenceParser.parse(stp)
+        pps = list(tstp.subtrees(filter=lambda x: x.label()=='PP'))
+        pts = list()
+        for p in pps:
+          pts.append(sentfromleaves(p))
+        
+        keyword = ""
+        nopp = []
+        if(fw == "when"):
+          keyword = "TIME"
+        else:
+          keyword = "LOCATION"
+
+        matched = filter(lambda x: td[x]==keyword, td.keys())
+        nechunk = ["FACILITY", "GPE", "GSP", "LOCATION", "ORGANIZATION", "PERSON"]
+
+        if(len(matched) != 0):
+          likely = list()
+          print matched
+          print pts
+          for m in matched:
+            for p in pts:
+              if(m in p):
+                if(fw == "when"):
+                  return p
+                likely.append(p)
+          if(fw == "where"):
+            for l in likely:
+              chunktags = nltk.ne_chunk(SentenceParser.parse(l).pos())
+              ctl = map(lambda x: x.label(), list(chunktags.subtrees()))
+              ctl = filter(lambda x:x in nechunk, ctl)
+              ctl = filter(lambda x: x != 'PERSON', ctl)
+              if(len(ctl) != 0):
+                return l
+
+
+      elif(fw == "how"):
+        tstp = SentenceParser.parse(stp)
+        pt = tstp.pos()
+
+        tq = SentenceParser.parse(q)[0]
+        while(len(tq) <= 1):
+          if(len(tq) == 0):
+            break
+          tq = tq[0]
+        if(len(tq) > 1):
+          tq = tq[1:]
+          for i in xrange(len(tq)):
+            if(tq[i].label() == 'VP'):
+              vs = list(tq[i].subtrees(filter=lambda x: 'VB' in x.label()))
+              verb = vs[0][0]
+              # print "verb: ", verb
+              for j in xrange(len(pt)):
+                (w, l) = pt[j]
+                if(w==verb):
+                  # print "w: ", w
+                  # print "pt: ", pt
+                  c = j
+                  if(c > 0):
+                    c -= 1
+                    ret = ""
+                    while(c >= 0):
+                      # print "first while"
+                      (w1, l1) = pt[c]
+                      if('RB' in l1):
+                        ret = w1 + " " + ret
+                        c -= 1
+                        # print "ret1: ", ret
+                      else:
+                        break
+                    if(ret != ""):
+                      return ret
+                  if(c < len(pt)):
+                    c += 1
+                    ret = ""
+                    while(c < len(pt)):
+                      # print "second while"
+                      (w1, l1) = pt[c]
+                      if('RB' in l1):
+                        ret = ret + " " + w1
+                        c += 1
+                        # print "ret2: ", ret
+                      else:
+                        break
+                    if(ret != ""):
+                      return ret
+
+        qnew = q
+        sqnew = SentenceParser.parse(qnew)[0]
+        for i in xrange(len(sqnew)):
+          if(sqnew[i].label() == 'VP'):
+            qnew = sentfromleaves(sqnew[i])
+        tstp1 = ParentedTree.convert(tstp)
+        pps = list(tstp1.subtrees(filter=lambda x: x.label()=='PP'))
+        for p in pps:
+          tmp = p.parent()
+          while(tmp.label() != 'S'):
+            if(tmp.label() == 'VP'):
+              tmps = sentfromleaves(tmp)
+              if(contained(qnew, tmps)):
+                return tmps
+            tmp = tmp.parent()
+      
+
+
+
+      elif(fw == "why"):
+        tstp = SentenceParser.parse(stp)
+        if("because of " in stp or "Because of " in stp):
+          pps = list(tstp.subtrees(filter=lambda x: x.label()=='PP'))
+          for p in pps:
+            if((p[0][0]=="because" or p[0][0]=="Because") and p[1][0]=="of"):
+              return sentfromleaves(p)
+          return stp
+        elif("because " in stp or "Because " in stp):
+          sbars = list(tstp.subtrees(filter=lambda x: x.label()=='SBAR'))
+          for sbar in sbars:
+            if(sbar[0][0]=="because" or sbar[0][0]=="Because"):
+              return sentfromleaves(sbar)
+          return stp
+        elif("for " in stp):
+          sbars = list(tstp.subtrees(filter=lambda x: x.label()=='SBAR'))
+          for sbar in sbars:
+            if(sbar[0][0]=="for"):
+              return sentfromleaves(sbar[1])
+          return stp
+        elif("since " in stp or "Since " in stp):
+          sbars = list(tstp.subtrees(filter=lambda x: x.label()=='SBAR'))
+          for sbar in sbars:
+            if(sbar[0][0]=="since" or sbar[0][0]=="Since"):
+              return sentfromleaves(sbar[1])
+        elif("so that " in stp):
+          sbars = list(tstp.subtrees(filter=lambda x: x.label()=='SBAR'))
+          for sbar in sbars:
+            if(sbar[0][0]=="so" and sbar[1][0]=="that"):
+              return sentfromleaves(sbar)
+          return stp
+        elif("so " in stp or "So " in stp):
+          sbars = list(tstp.subtrees(filter=lambda x: x.label()=='SBAR'))
+          for sbar in sbars:
+            if(sbar[0][0]=="so" or sbar[0][0]=="So"):
+              return sentfromleaves(sbar)
+      
+      else:
+        return stp
+
   return ""
 
 
-def qtense(q):
-  # tense for wh questions:
-    # Who did we see last night?
-    # Who wrote the poem?
-
-  # print "here: ", q
-  qnew = q
-  fw = first_word(qnew)
-  if(fw in wh):
-    qnew = qnew.replace(fw + " ", "")
-  parsed = SentenceParser.parse(qnew).pos()
-  (fw, first_tag) = parsed[0]
-  # print "parsed: ", parsed
-  # print first_tag
-  if(first_tag == 'VBD'):
-    # print "past"
-    # find main verb if any
-    # get past tense
-    # replace verb with past tense
-    v = tenseHelper(parsed)
-    # print "v: ", v
-    if(v != ""):
-      # print "here?"
-      # print "verb to change: ", v
-      vp = en.verb.past(v)
-      # print "vp: ", vp
-      q = q.replace(" " + v + " ", " " + vp + " ", 1)
-      # print "changed q: ", q
-      return q
-    return q
-  else:
-    return q
-
-
-def findDoc(q, tfidf):
-  maximum = -sys.maxint-1
-  count = 0
-  docNum = 0
-
-  for s in sentences:
-    # print q, s
-    tfidf_matrix = tfidf.fit_transform([q, s])
-    cosine_sim = ((tfidf_matrix * tfidf_matrix.T).A)[0,1]
-    # print "s: ", s
-    # print "cosine: ", cosine_sim
-
-    if cosine_sim > maximum:
-      docNum = count
-      maximum = cosine_sim
-    count += 1
-
-  return docNum
-
-
-def whAnswer(fw, q, ts):
-  s = original[ts]
-  # tmp = open("pysupersensetagger-master/example1.txt", "w")
-  tmp = open("example1.txt", "w")
-  p = SentenceParser.parse(s).pos()
-  for i in xrange(len(p)):
-    (p1, p2) = p[i]
-    tmp.write(p1 + "\t" + p2 + "\n")
-  # os.chdir(os.path.join(os.getcwd(), "pysupersensetagger-master"))
-  # os.system("./sst.sh example1.txt")
-
-
-  if(fw == "who"):
-    return "who"
-  elif(fw == "what"):
-    return "what"
-  elif(fw == "when"):
-    # s = SentenceParser.parse("On November 12, 2012, Stevens was arrested on investigation of assault following an altercation that left Solo injured. ")
-    # print s
-    return "when"
-  elif(fw == "where"):
-    return "where"
-  elif(fw == "how"):
-    return "how"
-  elif(fw == "why"):
-    return "why"
-  elif(fw == "which"):
-    return "which"
-  elif(fw == "whose"):
-    return "whose"
-  else:
-    sys.exit("Invalid question!")
-
-
-def answer(q, docNum, tfidf):
-  targetSentence = sentences[docNum]
+def answer(q, count, tfidf):
+  # print "count: ", count
+  # print "sentences: ", sentences
+  targetSentence = sentences[count]
   print "Question (parsed): ", q
   print "Target sentence (parsed): ", targetSentence
   fw = first_word(q)
@@ -279,7 +454,7 @@ def answer(q, docNum, tfidf):
     # print set(fw)
     tfidf.fit_transform([targetSentence])
     fst = set(tfidf.get_feature_names())
-    print "fsq: ", fsq, "fst: ", fst
+    # print "fsq: ", fsq, "fst: ", fst
     if(fsq.issubset(fst)):
       print "Yes.\n"
     else:
@@ -299,20 +474,35 @@ def answer(q, docNum, tfidf):
     # look at output
     # fall-through: return target string
 
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
     if(len(targetSentence.split()) <= len(q.split())):
       # original answer is short enough
       print original[targetSentence]
 
     else:
-      ret = whAnswer(fw, q, targetSentence)
+      ret = ""
+      try:
+        ret = whAnswer(fw, q, targetSentence, tfidf)
+      except IndexError:
+        ret = ""
+
+      # print "ret: ", ret
       if(ret == ""):
         # fall through
+        # if the original sentence is within a certain threshold
         print original[targetSentence]
       else:
+        ret = ret.strip()
+        if(ret[0].islower()):
+          ret = ret[0].upper() + ret[1:]
+        if('.' not in ret):
+          ret = ret+'.'
         print ret
+    print "\n"
 
 
 if __name__ == '__main__':
+  # print "in 2\n"
   # print (sys.argv)
   if len(sys.argv) != 3:
     print "Wrong number of arguments"
