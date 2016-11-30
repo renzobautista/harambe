@@ -4,7 +4,7 @@
 # input: 
 #    - src.txt: source document to generate answers from
 #    - q.txt: document containing n line-separated questions
-# assumes input documents are under the same working directory
+# assumes input document paths are under the same working directory
 #
 # output:
 #    - parsedQs.txt: document of n line-separated, parsed questions
