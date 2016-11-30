@@ -241,10 +241,15 @@ def whoHelper(fw, q, stp, t, tfidf):
 
 
 # routine to answer when/where questions
-# algorithm: 
+# algorithm: use AMALGrAM to supersense tag words in the target sentence, and
+# also generate a list of PPs from the target sentence. For when questions, if 
+# a word tagged as TIME appears in a PP, return that PP. For where questions,
+# generate a list of possible PPs that could be answer, and then verify the tags
+# with nltk.ne_chunks
 def whenWhere(fw, q, stp, t, tfidf, whenere):
   superS = json.loads(whenere.split("\t")[2])["labels"]
   td = parsetd(superS)
+
   tstp = SentenceParser.parse(stp)
   pps = list(tstp.subtrees(filter=lambda x: x.label()=='PP'))
   pts = list()
@@ -263,14 +268,13 @@ def whenWhere(fw, q, stp, t, tfidf, whenere):
 
   if(len(matched) != 0):
     likely = list()
-    # print matched
-    # print pts
     for m in matched:
       for p in pts:
         if(m in p):
           if(fw == "when"):
             return p
           likely.append(p)
+
     if(fw == "where"):
       for l in likely:
         chunktags = nltk.ne_chunk(SentenceParser.parse(l).pos())
@@ -281,6 +285,11 @@ def whenWhere(fw, q, stp, t, tfidf, whenere):
           return l
 
 
+
+# routine to answer how questions
+# algorithm: first get the main verb of the question, and look for adverbs next
+# to it in the target sentence, return any if they exist. Else, return the PP
+# that belongs under the same S as the VP in the question
 def howHelper(fw, q, stp, t, tfidf):
   tstp = SentenceParser.parse(stp)
   pt = tstp.pos()
@@ -296,37 +305,34 @@ def howHelper(fw, q, stp, t, tfidf):
       if(tq[i].label() == 'VP'):
         vs = list(tq[i].subtrees(filter=lambda x: 'VB' in x.label()))
         verb = vs[0][0]
-        # print "verb: ", verb
+
         for j in xrange(len(pt)):
           (w, l) = pt[j]
           if(w==verb):
-            # print "w: ", w
-            # print "pt: ", pt
             c = j
+            # look before verb
             if(c > 0):
               c -= 1
               ret = ""
               while(c >= 0):
-                # print "first while"
                 (w1, l1) = pt[c]
                 if('RB' in l1):
                   ret = w1 + " " + ret
                   c -= 1
-                  # print "ret1: ", ret
                 else:
                   break
               if(ret != ""):
                 return ret
+
+            # look after verb
             if(c < len(pt)):
               c += 1
               ret = ""
               while(c < len(pt)):
-                # print "second while"
                 (w1, l1) = pt[c]
                 if('RB' in l1):
                   ret = ret + " " + w1
                   c += 1
-                  # print "ret2: ", ret
                 else:
                   break
               if(ret != ""):
@@ -337,6 +343,7 @@ def howHelper(fw, q, stp, t, tfidf):
   for i in xrange(len(sqnew)):
     if(sqnew[i].label() == 'VP'):
       qnew = sentfromleaves(sqnew[i])
+
   tstp1 = ParentedTree.convert(tstp)
   pps = list(tstp1.subtrees(filter=lambda x: x.label()=='PP'))
   for p in pps:
@@ -349,6 +356,11 @@ def howHelper(fw, q, stp, t, tfidf):
       tmp = tmp.parent()
 
 
+
+# routine to answer why questions
+# algorithm: keywords to consider: because of, because, for, since, so that, so
+# based on if each keyword exist in the target sentence, get the part that is
+# the logical explanation of the question based on the sentence structure
 def whyHelper(fw, q, stp, t, tfidf):
   tstp = SentenceParser.parse(stp)
   if("because of " in stp or "Because of " in stp):
@@ -387,6 +399,8 @@ def whyHelper(fw, q, stp, t, tfidf):
         return sentfromleaves(sbar)
 
 
+
+# helper to parse supersense tagging output
 def parsetd(superS):
   td = dict()
   for i in superS.keys():
@@ -395,27 +409,23 @@ def parsetd(superS):
   return td
 
 
+
+# main routine to answer wh-questions
+# algorithm: for each question/target sentence pair, get all sub-sentences of 
+# the target sentence. Starting from the shortest one, if any of the sub-
+# sentences contain roughly all the information contained in the question, try
+# to generate an answer from that sub-sentence for conciseness.
 def whAnswer(fw, q, ts, tfidf):
+  # read the supersense tagging output for the corresponding question
   whenere = tagged.readline()
 
   s = original[ts]
-  # print "before: ", s
-  # s = re.sub(r' \((.*?)\)', "", s)
-  # print "after: ", s
-  # chunkS = nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(s)))
-  # print "super: ", superS
-  # print "chunk: ", chunkS
-
   t = SentenceParser.parse(s)
   ss = reversed(list(t.subtrees(filter=lambda x: x.label()=='S')))
-  # print "ss: ", ss
   for st in ss:
-    # print "st: ", st
     stp = sentfromleaves(st)
-    # print "stp: ", stp
-    if(contained(q, stp)):
-      # print "stp: ", stp
 
+    if(contained(q, stp)):
       ret = ""
       if(fw == "who"):
         ret = whoHelper(fw, q, stp, t, tfidf)
@@ -437,79 +447,62 @@ def whAnswer(fw, q, ts, tfidf):
       else:
         return stp
 
-
       if(ret != None and ret != ""):
         return ret
 
   return ""
 
 
+
+# main routine to answer all questions, splits off for wh-questions
+# algorithm for yes/no questions: get the features of both the target sentence
+# and the question using tfidf, and if all features of the question are roughly
+# contained in the features of the target sentence, return yes; else, no
 def answer(q, count, tfidf):
-  # print "count: ", count
-  # print "sentences: ", sentences
   targetSentence = sentences[count]
-  # print "Question (parsed): ", q
-  # print "Target sentence (parsed): ", targetSentence
   fw = first_word(q)
-  # print fw
   q = q.replace(fw + " ", "")
-  # print q
+
+  # yes/no question
   if (fw not in wh):
-    # yes/no question
     tfidf.fit_transform([q])
-    # print q
     fsq = set(tfidf.get_feature_names())
-    # print fw
-    # print set(fw)
     tfidf.fit_transform([targetSentence])
     fst = set(tfidf.get_feature_names())
-    # print "fsq: ", fsq, "fst: ", fst
     if(fsq.issubset(fst)):
-      print "Yes.\n"
+      print "Yes."
     else:
       if(len(fsq.difference(fst)) / float(len(fsq)) > 0.85):
         if("not" in fsq and "not" not in fst):
-          print "No.\n"
+          print "No."
         else:
-          print "Yes.\n"
-      print "No.\n"
+          print "Yes."
+      print "No."
+  
+  # wh-question
   else:
-    # wh question
-
-    # pronoun: coreference resolution
-    # beautify answer
-
-    # change directory
-    # make new file containing the correctly formatted POS tagged string
-    # run sst.sh with file
-    # look at output
-    # fall-through: return target string
-
+    # if the target sentence is short enough, just return it immediately
     if(len(targetSentence.split()) <= len(q.split())+7):
-      # original answer is short enough
       print original[targetSentence]
 
     else:
       ret = ""
-
       try:
         ret = whAnswer(fw, q, targetSentence, tfidf)
       except IndexError:
         ret = ""
 
-      # print "ret: ", ret
       if(ret == ""):
-        # fall through
-        # if the original sentence is within a certain threshold
+        # fall back: could not generate answer
         print original[targetSentence]
       else:
+        # correctly format output
         ret = ret.strip()
         if(ret[0].islower()):
           ret = ret[0].upper() + ret[1:]
         if('.' not in ret):
           ret = ret+'.'
         print ret
-    print "\n"
 
 
 
